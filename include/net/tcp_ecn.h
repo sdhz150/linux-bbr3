@@ -600,6 +600,7 @@ static inline void tcp_ecn_send_syn(struct sock *sk, struct sk_buff *skb)
 	bool bpf_needs_ecn = tcp_bpf_ca_needs_ecn(sk);
 	bool use_ecn, use_accecn;
 	u8 tcp_ecn = READ_ONCE(sock_net(sk)->ipv4.sysctl_tcp_ecn);
+	const struct dst_entry *dst = __sk_dst_get(sk);
 
 	use_accecn = tcp_ecn == TCP_ECN_IN_ACCECN_OUT_ACCECN ||
 		     tcp_ca_needs_accecn(sk);
@@ -608,8 +609,6 @@ static inline void tcp_ecn_send_syn(struct sock *sk, struct sk_buff *skb)
 		  tcp_ca_needs_ecn(sk) || bpf_needs_ecn || use_accecn;
 
 	if (!use_ecn) {
-		const struct dst_entry *dst = __sk_dst_get(sk);
-
 		if (dst && dst_feature(dst, RTAX_FEATURE_ECN))
 			use_ecn = true;
 	}
@@ -621,6 +620,9 @@ static inline void tcp_ecn_send_syn(struct sock *sk, struct sk_buff *skb)
 			INET_ECN_xmit_ect_1_negotiation(sk);
 
 		TCP_SKB_CB(skb)->tcp_flags |= TCPHDR_ECE | TCPHDR_CWR;
+
+		if (dst)
+			tcp_set_ecn_low_from_dst(sk, dst);
 		if (use_accecn) {
 			TCP_SKB_CB(skb)->tcp_flags |= TCPHDR_AE;
 			tcp_ecn_mode_set(tp, TCP_ECN_MODE_PENDING);
