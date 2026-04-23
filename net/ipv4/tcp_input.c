@@ -1769,6 +1769,7 @@ static void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
 	/* Record both segment send and ack receive intervals */
 	rs->snd_interval_us = snd_us;
 	rs->rcv_interval_us = ack_us;
+	rs->tx_in_flight = 0;
 
 	/* Normally we expect interval_us >= min-rtt.
 	 * Note that rate may still be over-estimated when a spuriously
@@ -1825,6 +1826,7 @@ static void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
 		rs->is_app_limited   = scb->tx.is_app_limited;
 		rs->is_retrans	     = scb->sacked & TCPCB_RETRANS;
 		rs->last_end_seq     = scb->end_seq;
+		rs->tx_in_flight     = TCP_SKB_CB(skb)->tx.in_flight;
 
 		/* Record send time of most recently ACKed packet: */
 		tp->first_tx_mstamp  = tx_tstamp;

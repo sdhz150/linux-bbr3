@@ -57,6 +57,21 @@ void noinline tcp_mstamp_refresh(struct tcp_sock *tp)
 	tcp_mstamp_refresh_inline(tp);
 }
 
+static void tcp_set_skb_tstamp_in_flight(struct sock *sk, struct sk_buff *skb)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+	u32 in_flight;
+
+	in_flight = tcp_packets_in_flight(tp) + tcp_skb_pcount(skb);
+	if (WARN_ONCE(in_flight > 1024 * 1024,
+		      "insane in_flight %u cc %s mss %u cwnd %u\n",
+		      in_flight, inet_csk(sk)->icsk_ca_ops->name,
+		      tp->mss_cache, tp->snd_cwnd))
+		in_flight = 1024 * 1024;
+
+	TCP_SKB_CB(skb)->tx.in_flight = in_flight;
+}
+
 static bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 			   int push_one, gfp_t gfp);
 
@@ -1473,6 +1488,7 @@ static void tcp_update_skb_after_send(struct sock *sk, struct sk_buff *skb,
 static void tcp_rate_skb_sent(struct sock *sk, struct sk_buff *skb)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
+	tcp_set_skb_tstamp_in_flight(sk, skb);
 
 	 /* In general we need to start delivery rate samples from the
 	  * time we received the most recent ACK, to ensure we include
