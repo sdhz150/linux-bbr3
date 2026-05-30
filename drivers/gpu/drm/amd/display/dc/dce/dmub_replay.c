@@ -396,8 +396,6 @@ static void dmub_replay_send_cmd(struct dmub_replay *dmub,
 			cmd_element->version_data.panel_inst;
 		cmd.replay_set_version.replay_set_version_data.version =
 			cmd_element->version_data.version;
-		cmd.replay_set_version.replay_set_version_data.cmd_version =
-			cmd_element->version_data.cmd_version;
 		break;
 	case Replay_Set_General_Cmd:
 		//Header
