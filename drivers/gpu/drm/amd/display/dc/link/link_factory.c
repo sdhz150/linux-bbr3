@@ -735,6 +735,7 @@ static bool construct_phy(struct dc_link *link,
 
 	link->psr_settings.psr_vtotal_control_support = false;
 	link->psr_settings.psr_version = DC_PSR_VERSION_UNSUPPORTED;
+	link->replay_settings.config.replay_version = DC_REPLAY_VERSION_UNSUPPORTED;
 
 	DC_LOG_DC("BIOS object table - %s finished successfully.\n", __func__);
 	return true;
@@ -816,6 +817,7 @@ static bool construct_dpia(struct dc_link *link,
 	/* TODO: Create link encoder */
 
 	link->psr_settings.psr_version = DC_PSR_VERSION_UNSUPPORTED;
+	link->replay_settings.config.replay_version = DC_REPLAY_VERSION_UNSUPPORTED;
 
 	/* Some docks seem to NAK I2C writes to segment pointer with mot=0. */
 	link->wa_flags.dp_mot_reset_segment = true;
